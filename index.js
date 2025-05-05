@@ -56,7 +56,40 @@ app.get('/mp4', async (req, res) => {
     res.status(500).json({ error: 'Failed to process your request' });
   }
 });
+app.get('/yta', async (req, res) => {
+  const query = req.query.q;
 
+  if (!query) {
+    return res.status(400).json({ error: 'Please provide a search query using ?q=' });
+  }
+
+  try {
+    const data = await yts(query);
+    const video = data.videos[0];
+    const dlData = await gifted.ytmp3v2(video.url); // assumed it returns full structure
+
+    res.json({
+      creator: "Bandaheali",
+      title: dlData.result.title,
+      thumbnail: dlData.result.thumbnail,
+      duration: dlData.result.duration,
+      download_url: dlData.result.download_url
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to process your request' });
+  }
+});
+
+app.get('/', (req, res) => {
+ res.json ({
+   status: '✅️',
+   creater: 'Bandaheali',
+   info: 'DOWNLOAD APIS FOR SARKAR-MD'
+ });
+        });
+  
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
