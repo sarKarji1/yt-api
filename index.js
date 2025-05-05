@@ -1,18 +1,23 @@
 const express = require('express');
 const yts = require('yt-search');
+const path = require('path');
 const GIFTED_DLS = require('gifted-dls');
-const { default: serverless } = require('serverless-http');
 
 const app = express();
 const gifted = new GIFTED_DLS();
 
 app.get('/mp3', async (req, res) => {
   const query = req.query.q;
-  if (!query) return res.status(400).json({ error: 'Please provide a search query using ?q=' });
+
+  if (!query) {
+    return res.status(400).json({ error: 'Please provide a search query using ?q=' });
+  }
+
   try {
     const data = await yts(query);
     const video = data.videos[0];
-    const dlData = await gifted.ytmp3(video.url);
+    const dlData = await gifted.ytmp3(video.url); // assumed it returns full structure
+
     res.json({
       creator: "Bandaheali",
       title: dlData.result.title,
@@ -20,6 +25,7 @@ app.get('/mp3', async (req, res) => {
       duration: dlData.result.duration,
       download_url: dlData.result.download_url
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to process your request' });
@@ -28,11 +34,16 @@ app.get('/mp3', async (req, res) => {
 
 app.get('/mp4', async (req, res) => {
   const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Please provide a search query using ?q=" });
+
+  if (!query) {
+    return res.status(400).json({ error: "Please provide a search query using ?q=" });
+  }
+
   try {
     const data = await yts(query);
     const video = data.videos[0];
-    const dlData = await gifted.ytmp4(video.url);
+    const dlData = await gifted.ytmp4(video.url); // assumed correct method
+
     res.json({
       creator: "Bandaheali",
       title: dlData.result.title,
@@ -40,19 +51,24 @@ app.get('/mp4', async (req, res) => {
       duration: dlData.result.duration,
       download_url: dlData.result.download_url
     });
+
   } catch (e) {
     console.log(e);
     res.status(500).json({ error: 'Failed to process your request' });
   }
 });
-
 app.get('/yta', async (req, res) => {
   const query = req.query.q;
-  if (!query) return res.status(400).json({ error: 'Please provide a search query using ?q=' });
+
+  if (!query) {
+    return res.status(400).json({ error: 'Please provide a search query using ?q=' });
+  }
+
   try {
     const data = await yts(query);
     const video = data.videos[0];
-    const dlData = await gifted.ytmp3v2(video.url);
+    const dlData = await gifted.ytmp3v2(video.url); // assumed it returns full structure
+
     res.json({
       creator: "Bandaheali",
       title: dlData.result.title,
@@ -60,6 +76,7 @@ app.get('/yta', async (req, res) => {
       duration: dlData.result.duration,
       download_url: dlData.result.download_url
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to process your request' });
@@ -67,13 +84,9 @@ app.get('/yta', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({
-    status: '✅️',
-    creator: 'Bandaheali',
-    info: 'DOWNLOAD APIS FOR SARKAR-MD'
-  });
+  res.sendfile(path.join(__dirname, 'public', 'index.html'));
+ });
+  
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
-
-// Export for Vercel
-module.exports = app;
-module.exports.handler = serverless(app);
